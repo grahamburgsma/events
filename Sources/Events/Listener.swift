@@ -1,19 +1,17 @@
 import Vapor
 
-public protocol Listener {
+public protocol Listener: _Listener {
     associatedtype EventType: Event
 
     func handle(_ event: EventType, context: ListenerContext) -> EventLoopFuture<Void>
 }
 
-struct AnyListener<E: Event>: Listener {
-    private let _handle: (_ event: E, _ context: ListenerContext) -> EventLoopFuture<Void>
+public protocol _Listener {
+    func _handle<E: Event>(_ event: E, context: ListenerContext) -> EventLoopFuture<Void>
+}
 
-    init<Factory: Listener>(_ carFactory: Factory) where Factory.EventType == E {
-        _handle = carFactory.handle
-    }
-
-    func handle(_ event: E, context: ListenerContext) -> EventLoopFuture<Void> {
-        return _handle(event, context)
+extension _Listener where Self: Listener {
+    func _handle<E>(_ event: E, context: ListenerContext) -> EventLoopFuture<Void> where E : Event {
+        handle(event as! Self.EventType, context: context)
     }
 }
