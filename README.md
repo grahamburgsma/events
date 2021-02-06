@@ -1,3 +1,23 @@
 # Events
 
-A description of this package.
+Events provides a simple observer pattern to subscribe and listen for events in your Vapor application. This idea is based on [Laravel Events](https://laravel.com/docs/events).
+
+## Registering Events & Listeners
+
+```swift
+// Event
+struct ThingHappened: Event { ... }
+
+// Listeners
+struct NofifyThing: Listener { ... }
+struct SendEmailAboutThing: Listener { ... }
+
+req.events.register(ThingHappened.self, listeners: NotifyThing(), SendEmailAboutThing())
+```
+
+## Triggering Events
+
+```swift
+let event = ThingHappened()
+req.events.trigger(event)
+```

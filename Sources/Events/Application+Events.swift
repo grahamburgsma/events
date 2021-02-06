@@ -25,6 +25,10 @@ extension Application {
 
         public let application: Application
 
+        public func register<E: Event>(event: E.Type, listeners: _Listener...) {
+            register(event: event, listeners: listeners)
+        }
+
         public func register<E: Event>(event: E.Type, listeners: [_Listener]) {
             assert(storage.listeners[E.name] == nil, "Event with name \(E.name) has already been registered")
 

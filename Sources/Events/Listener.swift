@@ -11,7 +11,7 @@ public protocol _Listener {
 }
 
 extension _Listener where Self: Listener {
-    func _handle<E>(_ event: E, context: ListenerContext) -> EventLoopFuture<Void> where E : Event {
+    public func _handle<E>(_ event: E, context: ListenerContext) -> EventLoopFuture<Void> where E : Event {
         handle(event as! Self.EventType, context: context)
     }
 }
