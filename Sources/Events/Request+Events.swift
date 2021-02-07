@@ -2,7 +2,7 @@ import Vapor
 
 extension Request {
 
-    public var events: Application.Events {
-        application.events
+    public var events: Events {
+        .init(self)
     }
 }
