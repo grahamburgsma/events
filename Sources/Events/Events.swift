@@ -3,7 +3,7 @@ import Vapor
 public struct Events {
 
     final class Storage {
-        var listeners = [String: [_Listener]]()
+        var listeners = [String: [_Listener.Type]]()
     }
 
     struct Key: StorageKey {
@@ -33,17 +33,17 @@ public struct Events {
         self.application = application
     }
 
-    public func register<E: Event>(event: E.Type, listeners: _Listener...) {
+    public func register<E: Event>(event: E.Type, listeners: _Listener.Type...) {
         register(event: event, listeners: listeners)
     }
 
-    public func register<E: Event>(event: E.Type, listeners: [_Listener]) {
+    public func register<E: Event>(event: E.Type, listeners: [_Listener.Type]) {
         assert(storage.listeners[E.name] == nil, "Event with name \(E.name) has already been registered")
 
         storage.listeners[E.name] = listeners
     }
 
-    public func trigger<E: Event>(_ event: E) -> EventLoopFuture<Void> {
+    public func emit<E: Event>(_ event: E) -> EventLoopFuture<Void> {
         let context = ListenerContext(
             application: application,
             logger: logger,
@@ -56,7 +56,11 @@ public struct Events {
         }
 
         return listeners.map {
-            $0._handle(event, context: context)
+            if $0._shouldQueue(event, context: context) {
+                return $0._handle(event, context: context)
+            } else {
+                return eventLoop.future()
+            }
         }
         .flatten(on: context.eventLoop)
     }

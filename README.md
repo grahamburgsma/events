@@ -12,12 +12,12 @@ struct ThingHappened: Event { ... }
 struct NofifyThing: Listener { ... }
 struct SendEmailAboutThing: Listener { ... }
 
-req.events.register(ThingHappened.self, listeners: NotifyThing(), SendEmailAboutThing())
+req.events.register(ThingHappened.self, listeners: NotifyThing.self, SendEmailAboutThing.self)
 ```
 
-## Triggering Events
+## Emitting Events
 
 ```swift
 let event = ThingHappened()
-req.events.trigger(event)
+req.events.emit(event)
 ```
