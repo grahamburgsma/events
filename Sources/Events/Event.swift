@@ -1,6 +1,9 @@
 
 import Vapor
 
+/// ## Naming
+/// - Past Tense Immutable fact
+/// - Examples: OrderPlaced, OrderShipped
 public protocol Event {
     static var name: String { get }
 }

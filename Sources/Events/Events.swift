@@ -47,7 +47,8 @@ public struct Events {
         let context = ListenerContext(
             application: application,
             logger: logger,
-            eventLoop: eventLoop
+            eventLoop: eventLoop,
+            events: self
         )
 
         guard let listeners = storage.listeners[E.name] else {
@@ -55,10 +56,14 @@ public struct Events {
             return context.eventLoop.future()
         }
 
-        return listeners.map {
-            if $0._shouldQueue(event, context: context) {
-                return $0._handle(event, context: context)
+        logger.info("Event \(E.name) emitted")
+
+        return listeners.map { (listener) in
+            if listener._shouldQueue(event, context: context) {
+                logger.debug("Performing listener '\(listener.self)'")
+                return listener._handle(event, context: context)
             } else {
+                logger.debug("Skipping listener '\(listener.self)'")
                 return eventLoop.future()
             }
         }

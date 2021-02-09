@@ -11,4 +11,5 @@ public struct ListenerContext {
     /// An event loop to run the process on
     public let eventLoop: EventLoop
 
+    public let events: Events
 }
