@@ -3,7 +3,7 @@ import Vapor
 public struct Events {
 
     final class Storage {
-        var listeners = [String: [_Listener.Type]]()
+        var listeners = [String: [_Listener]]()
     }
 
     struct Key: StorageKey {
@@ -33,11 +33,11 @@ public struct Events {
         self.application = application
     }
 
-    public func register<E: Event>(event: E.Type, listeners: _Listener.Type...) {
+    public func register<E: Event>(event: E.Type, listeners: _Listener...) {
         register(event: event, listeners: listeners)
     }
 
-    public func register<E: Event>(event: E.Type, listeners: [_Listener.Type]) {
+    public func register<E: Event>(event: E.Type, listeners: [_Listener]) {
         assert(storage.listeners[E.name] == nil, "Event with name \(E.name) has already been registered")
 
         storage.listeners[E.name] = listeners
