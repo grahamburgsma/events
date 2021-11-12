@@ -59,13 +59,7 @@ public struct Events {
         logger.info("Event \(E.name) emitted")
 
         return listeners.map { (listener) in
-            if listener._shouldQueue(event, context: context) {
-                logger.debug("Performing listener '\(listener.self)'")
-                return listener._handle(event, context: context)
-            } else {
-                logger.debug("Skipping listener '\(listener.self)'")
-                return eventLoop.future()
-            }
+            checkAndPerformHandle(listener, for: event, context: context)
         }
         .flatten(on: context.eventLoop)
     }
@@ -79,12 +73,23 @@ public struct Events {
             events: self
         )
 
-        if skipShouldQueue || listener._shouldQueue(event, context: context) {
+        if skipShouldQueue {
             logger.debug("Performing listener '\(listener.self)'")
             return listener._handle(event, context: context)
         } else {
-            logger.debug("Skipping listener '\(listener.self)'")
-            return eventLoop.future()
+            return checkAndPerformHandle(listener, for: event, context: context)
+        }
+    }
+    
+    private func checkAndPerformHandle<E: Event>(_ listener: _Listener, for event: E, context: ListenerContext) -> EventLoopFuture<Void> {
+        listener._shouldHandle(event, context: context).flatMap { (shouldHandle) in
+            if shouldHandle {
+                logger.debug("Performing listener '\(listener.self)'")
+                return listener._handle(event, context: context)
+            } else {
+                logger.debug("Skipping listener '\(listener.self)'")
+                return eventLoop.future()
+            }
         }
     }
 }
