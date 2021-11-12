@@ -6,22 +6,22 @@ import Vapor
 public protocol AsyncListener: _Listener {
     associatedtype EventType: Event
     
-    func shouldQueue(_ event: EventType, context: ListenerContext) async throws -> Bool
+    func shouldHandle(_ event: EventType, context: ListenerContext) async throws -> Bool
     func handle(_ event: EventType, context: ListenerContext) async throws
 }
 
 @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
 extension AsyncListener {
-    public func shouldQueue(_ event: EventType, context: ListenerContext) async throws -> Bool { true }
+    public func shouldHandle(_ event: EventType, context: ListenerContext) async throws -> Bool { true }
 }
 
 @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
 extension _Listener where Self: AsyncListener {
     
-    public func _shouldQueue<E>(_ event: E, context: ListenerContext) -> EventLoopFuture<Bool> where E : Event {
+    public func _shouldHandle<E>(_ event: E, context: ListenerContext) -> EventLoopFuture<Bool> where E : Event {
         let promise = context.eventLoop.makePromise(of: Bool.self)
         promise.completeWithTask {
-            try await shouldQueue(event as! Self.EventType, context: context)
+            try await shouldHandle(event as! Self.EventType, context: context)
         }
         return promise.futureResult
     }
