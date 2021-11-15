@@ -65,7 +65,7 @@ public struct Events {
     }
     
     /// Directly trigger a listener with an event
-    public func trigger<L: Listener, E>(_ listener: L, for event: E, skipShouldQueue: Bool = false) -> EventLoopFuture<Void> where L.EventType == E {
+    public func trigger<E: Event>(_ listener: _Listener, for event: E, skipShouldQueue: Bool = false) -> EventLoopFuture<Void> {
         let context = ListenerContext(
             application: application,
             logger: logger,
