@@ -1,11 +1,11 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.7
 
 import PackageDescription
 
 let package = Package(
     name: "events",
     platforms: [
-       .macOS(.v10_15)
+       .macOS(.v13)
     ],
     products: [
         .library(name: "Events", targets: ["Events"]),

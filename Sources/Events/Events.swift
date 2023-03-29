@@ -3,7 +3,7 @@ import Vapor
 public struct Events {
 
     final class Storage {
-        var listeners = [String: [_Listener]]()
+        var listeners = [String: [any Listener]]()
     }
 
     struct Key: StorageKey {
@@ -33,17 +33,25 @@ public struct Events {
         self.application = application
     }
 
-    public func register<E: Event>(event: E.Type, listeners: _Listener...) {
+    public func register<E: Event>(event: E.Type, listeners: any Listener...) {
         register(event: event, listeners: listeners)
     }
 
-    public func register<E: Event>(event: E.Type, listeners: [_Listener]) {
+    public func register<E: Event>(event: E.Type, listeners: [any Listener]) {
         assert(storage.listeners[E.name] == nil, "Event with name \(E.name) has already been registered")
 
         storage.listeners[E.name] = listeners
     }
 
-    public func emit<E: Event>(_ event: E) -> EventLoopFuture<Void> {
+    /// Emit event and perform listeners asynchronously
+    public func emit<E: Event>(_ event: E) {
+        Task {
+            try await emitSync(event)
+        }
+    }
+
+    /// Emit event and perform listeners syncronously
+    public func emitSync<E: Event>(_ event: E) async throws {
         let context = ListenerContext(
             application: application,
             logger: logger,
@@ -53,19 +61,18 @@ public struct Events {
 
         guard let listeners = storage.listeners[E.name] else {
             logger.warning("No listeners registered for event '\(E.name)'")
-            return context.eventLoop.future()
+            return
         }
 
         logger.info("Event \(E.name) emitted")
 
-        return listeners.map { (listener) in
-            checkAndPerformHandle(listener, for: event, context: context)
+        for listener in listeners {
+            try await checkAndPerformHandle(listener, for: event, context: context)
         }
-        .flatten(on: context.eventLoop)
     }
     
     /// Directly trigger a listener with an event
-    public func trigger<E: Event>(_ listener: _Listener, for event: E, skipCheck: Bool = false) -> EventLoopFuture<Void> {
+    public func trigger<E: Event, L: Listener>(_ listener: L, for event: E, skipCheck: Bool = false) async throws where L.EventType == E {
         let context = ListenerContext(
             application: application,
             logger: logger,
@@ -75,21 +82,19 @@ public struct Events {
 
         if skipCheck {
             logger.debug("Performing listener '\(listener.self)'")
-            return listener._handle(event, context: context)
+            try await listener.handle(event, context: context)
         } else {
-            return checkAndPerformHandle(listener, for: event, context: context)
+            try await checkAndPerformHandle(listener, for: event, context: context)
         }
     }
     
-    private func checkAndPerformHandle<E: Event>(_ listener: _Listener, for event: E, context: ListenerContext) -> EventLoopFuture<Void> {
-        listener._shouldHandle(event, context: context).flatMap { (shouldHandle) in
-            if shouldHandle {
-                logger.debug("Performing listener '\(listener.self)'")
-                return listener._handle(event, context: context)
-            } else {
-                logger.debug("Skipping listener '\(listener.self)'")
-                return eventLoop.future()
-            }
+    private func checkAndPerformHandle<E: Event>(_ listener: some Listener, for event: E, context: ListenerContext) async throws {
+        let listener = listener as! any Listener<E>
+        if try await listener.shouldHandle(event, context: context) {
+            logger.debug("Performing listener '\(listener.self)'")
+            try await listener.handle(event, context: context)
+        } else {
+            logger.debug("Skipping listener '\(listener.self)'")
         }
     }
 }
