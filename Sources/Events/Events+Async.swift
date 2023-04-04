@@ -7,8 +7,8 @@ extension Events {
         _ = try await emit(event).get()
     }
     
-    public func trigger<E: Event>(_ listener: _Listener, for event: E, skipShouldQueue: Bool = false) async throws {
-        _ = try await trigger(listener, for: event, skipShouldQueue: skipShouldQueue).get()
+    public func trigger<E: Event>(_ listener: _Listener, for event: E, skipCheck: Bool = false) async throws {
+        _ = try await trigger(listener, for: event, skipCheck: skipCheck).get()
     }
 }
 

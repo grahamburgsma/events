@@ -65,7 +65,7 @@ public struct Events {
     }
     
     /// Directly trigger a listener with an event
-    public func trigger<E: Event>(_ listener: _Listener, for event: E, skipShouldQueue: Bool = false) -> EventLoopFuture<Void> {
+    public func trigger<E: Event>(_ listener: _Listener, for event: E, skipCheck: Bool = false) -> EventLoopFuture<Void> {
         let context = ListenerContext(
             application: application,
             logger: logger,
@@ -73,7 +73,7 @@ public struct Events {
             events: self
         )
 
-        if skipShouldQueue {
+        if skipCheck {
             logger.debug("Performing listener '\(listener.self)'")
             return listener._handle(event, context: context)
         } else {
