@@ -44,14 +44,14 @@ public struct Events {
     }
 
     /// Emit event and perform listeners asynchronously
-    public func emit<E: Event>(_ event: E) {
+    public func emit<E: Event>(_ event: E, performListenersConcurrently: Bool = true) {
         Task {
             try await emitSync(event)
         }
     }
 
     /// Emit event and perform listeners syncronously
-    public func emitSync<E: Event>(_ event: E) async throws {
+    public func emitSync<E: Event>(_ event: E, performListenersConcurrently: Bool = true) async throws {
         let context = ListenerContext(
             application: application,
             logger: logger,
@@ -66,8 +66,18 @@ public struct Events {
 
         logger.info("Event \(E.name) emitted")
 
-        for listener in listeners {
-            try await checkAndPerformHandle(listener, for: event, context: context)
+        if performListenersConcurrently {
+            await withThrowingTaskGroup(of: Void.self) { group in
+                for listener in listeners {
+                    group.addTask {
+                        try await checkAndPerformHandle(listener, for: event, context: context)
+                    }
+                }
+            }
+        } else {
+            for listener in listeners {
+                try await checkAndPerformHandle(listener, for: event, context: context)
+            }
         }
     }
     
