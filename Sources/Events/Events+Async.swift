@@ -2,8 +2,16 @@
 
 @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
 extension Events {
-    
-    public func emit<E: Event>(_ event: E) async throws {
+
+    /// Emit event and perform listeners asynchronously
+    public func emit<E: Event>(_ event: E) {
+        Task {
+            try await emitSync(event)
+        }
+    }
+
+    /// Emit event and perform listeners syncronously
+    public func emitSync<E: Event>(_ event: E) async throws {
         _ = try await emit(event).get()
     }
     
