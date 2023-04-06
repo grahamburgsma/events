@@ -99,10 +99,10 @@ public struct Events {
     }
     
     private func checkAndPerformHandle<E: Event>(_ listener: some Listener, for event: E, context: ListenerContext) async throws {
-        let listener = listener as! any Listener<E>
-        if try await listener.shouldHandle(event, context: context) {
+        let anyListener = listener as! any Listener<E>
+        if try await anyListener.shouldHandle(event, context: context) {
             logger.debug("Performing listener '\(listener.self)'")
-            try await listener.handle(event, context: context)
+            try await anyListener.handle(event, context: context)
         } else {
             logger.debug("Skipping listener '\(listener.self)'")
         }
