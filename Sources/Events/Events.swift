@@ -38,7 +38,7 @@ public struct Events {
     }
 
     public func register<E: Event>(event: E.Type, listeners: [any Listener]) {
-        assert(storage.listeners[E.name] == nil, "Event with name \(E.name) has already been registered")
+        assert(storage.listeners[E.name] == nil, "Event with name '\(E.name)' has already been registered")
 
         storage.listeners[E.name] = listeners
     }
@@ -46,7 +46,11 @@ public struct Events {
     /// Emit event and perform listeners asynchronously
     public func emit<E: Event>(_ event: E, performListenersConcurrently: Bool = true) {
         Task {
-            try await emitSync(event)
+            do {
+                try await emitSync(event)
+            } catch {
+                logger.error("Event '\(E.name)' failed with error: \(error)")
+            }
         }
     }
 
@@ -64,13 +68,17 @@ public struct Events {
             return
         }
 
-        logger.info("Event \(E.name) emitted")
+        logger.info("Event '\(E.name)' emitted")
 
         if performListenersConcurrently {
-            await withThrowingTaskGroup(of: Void.self) { group in
+            await withTaskGroup(of: Void.self) { group in
                 for listener in listeners {
                     group.addTask {
-                        try await checkAndPerformHandle(listener, for: event, context: context)
+                        do {
+                            try await checkAndPerformHandle(listener, for: event, context: context)
+                        } catch {
+                            logger.error("Listener '\(listener.self)' failed with error: \(error)")
+                        }
                     }
                 }
             }
