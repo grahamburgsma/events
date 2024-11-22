@@ -1,6 +1,6 @@
 import Vapor
 
-public protocol Listener<EventType> {
+public protocol Listener<EventType>: Sendable {
     associatedtype EventType: Event
 
     func shouldHandle(_ event: EventType, context: ListenerContext) async throws -> Bool

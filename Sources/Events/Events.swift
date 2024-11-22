@@ -1,9 +1,18 @@
 import Vapor
+import NIOConcurrencyHelpers
 
-public struct Events {
+public struct Events: Sendable {
 
-    final class Storage {
-        var listeners = [String: [any Listener]]()
+    final class Storage: Sendable {
+        private struct Box: Sendable {
+            var listeners = [String: [any Listener]]()
+        }
+        private let box = NIOLockedValueBox<Box>(.init())
+
+        var listeners: [String: [any Listener]] {
+            get { box.withLockedValue { $0.listeners } }
+            set { box.withLockedValue { $0.listeners = newValue } }
+        }
     }
 
     struct Key: StorageKey {

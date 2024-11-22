@@ -11,16 +11,27 @@ let package = Package(
         .library(name: "Events", targets: ["Events"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.104.0"),
     ],
     targets: [
         .target(
             name: "Events",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
-            ]),
+            ],
+            swiftSettings: [
+                .enableUpcomingFeature("ForwardTrailingClosures"),
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("ConciseMagicFile"),
+                .enableUpcomingFeature("DisableOutwardActorInference"),
+                .enableExperimentalFeature("StrictConcurrency=complete"),
+            ]
+        ),
         .testTarget(
             name: "EventsTests",
-            dependencies: ["Events"]),
+            dependencies: [
+                "Events",
+                .product(name: "XCTVapor", package: "vapor"),
+            ]),
     ]
 )

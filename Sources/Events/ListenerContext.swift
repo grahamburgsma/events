@@ -1,6 +1,6 @@
 import Vapor
 
-public struct ListenerContext {
+public struct ListenerContext: Sendable {
 
     /// The application object
     public let application: Application

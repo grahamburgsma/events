@@ -12,7 +12,13 @@ struct ThingHappened: Event { ... }
 struct NofifyThing: Listener { ... }
 struct SendEmailAboutThing: Listener { ... }
 
-req.events.register(ThingHappened.self, listeners: NotifyThing.self, SendEmailAboutThing.self)
+app.events.register(
+    ThingHappened.self, 
+    listeners: [
+        NotifyThing.self, 
+        SendEmailAboutThing.self
+    ]
+)
 ```
 
 ## Emitting Events
