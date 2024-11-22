@@ -8,8 +8,5 @@ public struct ListenerContext {
     /// The logger object
     public var logger: Logger
 
-    /// An event loop to run the process on
-    public let eventLoop: EventLoop
-
     public let events: Events
 }

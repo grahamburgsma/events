@@ -18,18 +18,15 @@ public struct Events {
     }
 
     public let logger: Logger
-    public let eventLoop: EventLoop
     public let application: Application
 
     init(_ request: Request) {
         logger = request.logger
-        eventLoop = request.eventLoop
         application = request.application
     }
 
     init(_ application: Application) {
         logger = application.logger
-        eventLoop = application.eventLoopGroup.next()
         self.application = application
     }
 
@@ -59,7 +56,6 @@ public struct Events {
         let context = ListenerContext(
             application: application,
             logger: logger,
-            eventLoop: eventLoop,
             events: self
         )
 
@@ -94,7 +90,6 @@ public struct Events {
         let context = ListenerContext(
             application: application,
             logger: logger,
-            eventLoop: eventLoop,
             events: self
         )
 
