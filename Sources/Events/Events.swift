@@ -55,7 +55,7 @@ public struct Events: Sendable {
             do {
                 try await emitSync(event)
             } catch {
-                logger.error("Event '\(E.name)' failed with error: \(error)")
+                logger.error("Event '\(E.name)' emission failed.", metadata: ["error": .string(String(reflecting: error))])
             }
         }
     }
@@ -82,7 +82,7 @@ public struct Events: Sendable {
                         do {
                             try await checkAndPerformHandle(listener, for: event, context: context)
                         } catch {
-                            logger.error("Listener '\(listener.self)' failed with error: \(error)")
+                            logger.error("Listener '\(listener.self)' failed.", metadata: ["error": .string(String(reflecting: error))])
                         }
                     }
                 }
